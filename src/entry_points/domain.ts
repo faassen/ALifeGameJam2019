@@ -63,17 +63,23 @@ A -> BC
 
 export type RuleName = string
 
-export interface ResourceCost {
-  water: number
-  energy: number
+export enum Resource {
+  water,
+  energy,
 }
+
+export type ResourceCost = Map<Resource, number>
 
 export class Environment {
   public costs(ruleNames: RuleName[]): ResourceCost {
     const waterCost = ruleNames.length * 10
     const energyCost = ruleNames.length * 10
 
-    return { "water": waterCost, "energy": energyCost }
+    const cost = new Map<Resource, number>()
+    cost.set(Resource.water, waterCost)
+    cost.set(Resource.energy, energyCost)
+
+    return cost
   }
 }
 
@@ -92,14 +98,14 @@ export class Tree {
 
 export class TreeNode {
   public children: TreeNode[] = []
-  public water = 0
-  public energy = 0
+  public resources = new Map<Resource, number>()
 
   public constructor(public name: RuleName, public parent: TreeNode | undefined) { }
 
   public update(tree: Tree) {
     // if we already have children, we update them recursively
     if (this.children.length !== 0) {
+      this.updateResources()
       this.children.forEach(child => {
         child.update(tree)
       })
@@ -109,12 +115,16 @@ export class TreeNode {
     // without children, try to grow new ones
     const lSystemRule = tree.lSystemRuleMap.get(this.name)
     if (lSystemRule == undefined) {
+      this.updateResources()
+
       return
     }
     const childNames = lSystemRule.product
     const cost = tree.environment.costs(childNames)
     const canSpend = this.spendResources(cost)
     if (!canSpend) {
+      this.updateResources()
+
       return
     }
     this.children = childNames.map(name => new TreeNode(name, this))
@@ -131,12 +141,34 @@ export class TreeNode {
     return `${this.name}${childrenStates}`
   }
 
+  private updateResources(): void {
+
+  }
+
   private spendResources(cost: ResourceCost): boolean {
-    if (this.water < cost.water || this.energy < cost.energy) {
-      return false
+    for (const value of cost) {
+      const resourceType = value[0]
+      const resourceCost = value[1]
+      const currentAmount = this.resources.get(resourceType)
+      if (currentAmount == undefined) {
+        if (resourceCost <= 0) {
+          continue
+        } else {
+          return false
+        }
+      }
+      if (resourceCost > currentAmount) {
+        return false
+      }
     }
-    this.water -= cost.water
-    this.energy -= cost.energy
+
+    cost.forEach((resourceCost, resourceType) => {
+      const currentAmount = this.resources.get(resourceType)
+      if (currentAmount == undefined) {
+        return
+      }
+      this.resources.set(resourceType, currentAmount - resourceCost)
+    })
 
     return true
   }
