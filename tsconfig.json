@@ -2,25 +2,18 @@
   "compilerOptions": {
     "target": "es2016",
     "module": "es2015",
-    "lib": [
-      "es2017",
-      "dom",
-      "es6"
-    ],
+    "lib": ["es2017", "dom", "es6"],
     "sourceMap": true,
     "moduleResolution": "node",
     "downlevelIteration": true,
     "removeComments": false,
     "baseUrl": "./",
-    "typeRoots": [
-      "src/@types"
-    ],
+    "strict": true,
     "noImplicitReturns": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
-    "noImplicitThis": true
+    "noImplicitThis": true,
+    "esModuleInterop": true
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }

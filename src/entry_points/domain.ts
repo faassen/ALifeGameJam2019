@@ -22,8 +22,8 @@ state: energy and amount
 
 Environmental Layer
 
-root is the source of W R
-end nodes evaporate W
+root is the source of Water
+end nodes evaporate Water
 end nodes (any node?) generate E. Perhaps we could only make certain end nodes of type L generate E.
 perhaps other nodes (for the stem? can still generate a little bit to have different strategies, or we could have leaves, needles, etc)
 
@@ -64,14 +64,14 @@ A -> BC
 
 */
 
-type RuleName = string;
+export type RuleName = string;
 
-type ResourceCost = {
+export type ResourceCost = {
   water: number;
   energy: number;
 };
 
-class Environment {
+export class Environment {
   costs(ruleNames: RuleName[]): ResourceCost {
     const waterCost = ruleNames.length * 10;
     const energyCost = ruleNames.length * 10;
@@ -79,7 +79,7 @@ class Environment {
   }
 }
 
-class Tree {
+export class Tree {
   constructor(
     public lSystemRuleMap: LSystemRuleMap,
     public transportRuleMap: TransportRuleMap,
@@ -87,10 +87,10 @@ class Tree {
   ) {}
 }
 
-class TreeNode {
-  children: TreeNode[];
-  water: number;
-  energy: number;
+export class TreeNode {
+  children: TreeNode[] = [];
+  water: number = 0;
+  energy: number = 0;
 
   constructor(public name: RuleName, public parent: TreeNode | null) {}
 
@@ -126,15 +126,15 @@ class TreeNode {
   }
 }
 
-class LSystemRule {
+export class LSystemRule {
   constructor(public name: RuleName, public product: RuleName[]) {}
 }
 
-type ResourceType = "Water" | "Energy";
+export type ResourceType = "Water" | "Energy";
 
-type ResourceMap = Map<ResourceType, number>;
+export type ResourceMap = Map<ResourceType, number>;
 
-class TransportRule {
+export class TransportRule {
   constructor(
     public name: RuleName,
     public parentResourceMap: ResourceMap,
@@ -142,5 +142,5 @@ class TransportRule {
   ) {}
 }
 
-type LSystemRuleMap = Map<RuleName, LSystemRule>;
-type TransportRuleMap = Map<RuleName, TransportRule>;
+export type LSystemRuleMap = Map<RuleName, LSystemRule>;
+export type TransportRuleMap = Map<RuleName, TransportRule>;
