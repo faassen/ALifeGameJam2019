@@ -1,4 +1,4 @@
-import * as p5 from "p5"
+import p5 from "p5"
 import { Vector } from "../classes/physics"
 import { URLParameter } from "../utilities"
 
@@ -177,7 +177,6 @@ class Node {
   private _currentState: string
   private _nextState: string
   private _direction: number
-  private readonly _history: string
   private _age = 0
   private readonly _depth: number
   public constructor(

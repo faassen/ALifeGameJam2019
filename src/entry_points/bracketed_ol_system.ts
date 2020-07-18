@@ -1,4 +1,4 @@
-import * as p5 from "p5"
+import p5 from "p5"
 import { Vector } from "../classes/physics"
 import { URLParameter } from "../utilities"
 

@@ -116,7 +116,7 @@ eval("var g;\n\n// This works in non-strict mode\ng = (function() {\n\treturn th
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var p5__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! p5 */ \"./node_modules/p5/lib/p5.js\");\n/* harmony import */ var p5__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(p5__WEBPACK_IMPORTED_MODULE_0__);\n\nconst main = (p) => {\n    p.setup = () => {\n        const canvas = p.createCanvas(100, 100);\n        canvas.id(\"canvas\");\n        canvas.parent(\"canvas-parent\");\n    };\n    p.draw = () => {\n        p.background(0);\n        p.fill(255);\n        p.ellipse(20, 20, 60, 60);\n    };\n};\nconst sketch = new p5__WEBPACK_IMPORTED_MODULE_0__(main);\n\n\n//# sourceURL=webpack:///./src/entry_points/tree1.ts?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var p5__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! p5 */ \"./node_modules/p5/lib/p5.js\");\n/* harmony import */ var p5__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(p5__WEBPACK_IMPORTED_MODULE_0__);\n\nconst main = (p) => {\n    p.setup = () => {\n        const canvas = p.createCanvas(100, 100);\n        canvas.id(\"canvas\");\n        canvas.parent(\"canvas-parent\");\n    };\n    p.draw = () => {\n        p.background(0);\n        p.fill(255);\n        p.ellipse(20, 20, 60, 60);\n    };\n};\nconst sketch = new p5__WEBPACK_IMPORTED_MODULE_0___default.a(main);\n\n\n//# sourceURL=webpack:///./src/entry_points/tree1.ts?");
 
 /***/ })
 

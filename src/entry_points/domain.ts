@@ -1,6 +1,5 @@
 /*
 
-
 L-System layer
 
 E - Energy
@@ -48,7 +47,6 @@ introduce new rule
 remove rule
 crossover between two sets of rules
 
-
 Selection:
 
 The plants which have managed to grow the most nodes are the most successful.
@@ -57,97 +55,100 @@ The plants which have managed to grow the most nodes are the most successful.
  A    B
 A  A  B   A
 
-
 ABAABABABAABA
 
 A -> BC
 
 */
 
-export type RuleName = string;
+export type RuleName = string
 
-export type ResourceCost = {
-  water: number;
-  energy: number;
-};
+export interface ResourceCost {
+  water: number
+  energy: number
+}
 
 export class Environment {
-  costs(ruleNames: RuleName[]): ResourceCost {
-    const waterCost = ruleNames.length * 10;
-    const energyCost = ruleNames.length * 10;
-    return { water: waterCost, energy: energyCost };
+  public costs(ruleNames: RuleName[]): ResourceCost {
+    const waterCost = ruleNames.length * 10
+    const energyCost = ruleNames.length * 10
+
+    return { "water": waterCost, "energy": energyCost }
   }
 }
 
 export class Tree {
-  constructor(
+  public constructor(
     public lSystemRuleMap: LSystemRuleMap,
     public transportRuleMap: TransportRuleMap,
-    public environment: Environment
-  ) {}
+    public environment: Environment,
+  ) { }
 }
 
 export class TreeNode {
-  children: TreeNode[] = [];
-  water: number = 0;
-  energy: number = 0;
+  public children: TreeNode[] = []
+  public water = 0
+  public energy = 0
 
-  constructor(public name: RuleName, public parent: TreeNode | null) {}
+  public constructor(public name: RuleName, public parent: TreeNode | undefined) { }
 
-  update(tree: Tree) {
+  public update(tree: Tree) {
     // if we already have children, we update them recursively
     if (this.children.length !== 0) {
-      this.children.forEach((child) => {
-        child.update(tree);
-      });
-      return;
+      this.children.forEach(child => {
+        child.update(tree)
+      })
+
+      return
     }
     // without children, try to grow new ones
-    const lSystemRule = tree.lSystemRuleMap.get(this.name);
-    if (lSystemRule == null) {
-      return;
+    const lSystemRule = tree.lSystemRuleMap.get(this.name)
+    if (lSystemRule == undefined) {
+      return
     }
-    const childNames = lSystemRule.product;
-    const cost = tree.environment.costs(childNames);
-    const canSpend = this.spendResources(cost);
+    const childNames = lSystemRule.product
+    const cost = tree.environment.costs(childNames)
+    const canSpend = this.spendResources(cost)
     if (!canSpend) {
-      return;
+      return
     }
-    this.children = childNames.map((name) => new TreeNode(name, this));
+    this.children = childNames.map(name => new TreeNode(name, this))
   }
 
-  spendResources(cost: ResourceCost): boolean {
+  public spendResources(cost: ResourceCost): boolean {
     if (this.water < cost.water || this.energy < cost.energy) {
-      return false;
+      return false
     }
-    this.water -= cost.water;
-    this.energy -= cost.energy;
-    return true;
+    this.water -= cost.water
+    this.energy -= cost.energy
+
+    return true
   }
 
   public toString(): string {
     const childrenStates = this.children.reduce((result, child) => {
-      return `${result}${child.name}`;
-    }, "");
-    return `${this.name}${childrenStates}`;
+      return `${result}${child.name}`
+    }, "")
+
+    return `${this.name}${childrenStates}`
   }
 }
 
 export class LSystemRule {
-  constructor(public name: RuleName, public product: RuleName[]) {}
+  public constructor(public name: RuleName, public product: RuleName[]) { }
 }
 
-export type ResourceType = "Water" | "Energy";
+export type ResourceType = "Water" | "Energy"
 
-export type ResourceMap = Map<ResourceType, number>;
+export type ResourceMap = Map<ResourceType, number>
 
 export class TransportRule {
-  constructor(
+  public constructor(
     public name: RuleName,
     public parentResourceMap: ResourceMap,
-    public childResourceMap: ResourceMap
-  ) {}
+    public childResourceMap: ResourceMap,
+  ) { }
 }
 
-export type LSystemRuleMap = Map<RuleName, LSystemRule>;
-export type TransportRuleMap = Map<RuleName, TransportRule>;
+export type LSystemRuleMap = Map<RuleName, LSystemRule>
+export type TransportRuleMap = Map<RuleName, TransportRule>
