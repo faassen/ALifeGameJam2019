@@ -27,10 +27,15 @@ test("LSystem layer works properly", () => {
   const rootNode = new TreeNode("A", undefined)
 
   rootNode.update(tree)
-  rootNode.update(tree)
 
   expect(rootNode.children.length)
     .toBe(2)
   expect(String(rootNode))
     .toBe("AAB")
+
+  rootNode.update(tree)
+  expect(rootNode.children[0].children.length)
+    .toBe(2)
+  expect(String(rootNode))
+    .toBe("AAABBA")
 })

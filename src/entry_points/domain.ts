@@ -126,9 +126,12 @@ export class TreeNode {
   }
 
   public toString(): string {
-    const childrenStates = this.children.reduce((result, child) => {
-      return `${result}${child.name}`
-    }, "")
+    const childrenStates = this.children.reduce(
+      (result, child) => {
+        return `${result}${String(child)}`
+      },
+      "",
+    )
 
     return `${this.name}${childrenStates}`
   }
