@@ -29,6 +29,5 @@ test("LSystem layer works properly", () => {
   rootNode.update(tree);
 
   expect(rootNode.children.length).toBe(2);
-  expect(rootNode.children[0].name).toBe("A");
-  expect(rootNode.children[1].name).toBe("B");
+  expect(String(rootNode)).toBe("AAB");
 });

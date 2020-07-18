@@ -124,6 +124,13 @@ export class TreeNode {
     this.energy -= cost.energy;
     return true;
   }
+
+  public toString(): string {
+    const childrenStates = this.children.reduce((result, child) => {
+      return `${result}${child.name}`;
+    }, "");
+    return `${this.name}${childrenStates}`;
+  }
 }
 
 export class LSystemRule {
