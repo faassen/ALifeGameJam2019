@@ -79,10 +79,15 @@ export class Environment {
 
 export class Tree {
   public constructor(
+    public rootNode: TreeNode,
     public lSystemRuleMap: LSystemRuleMap,
     public transportRuleMap: TransportRuleMap,
     public environment: Environment,
   ) { }
+
+  public update(): void {
+    this.rootNode.update(this)
+  }
 }
 
 export class TreeNode {
@@ -115,16 +120,6 @@ export class TreeNode {
     this.children = childNames.map(name => new TreeNode(name, this))
   }
 
-  public spendResources(cost: ResourceCost): boolean {
-    if (this.water < cost.water || this.energy < cost.energy) {
-      return false
-    }
-    this.water -= cost.water
-    this.energy -= cost.energy
-
-    return true
-  }
-
   public toString(): string {
     const childrenStates = this.children.reduce(
       (result, child) => {
@@ -134,6 +129,16 @@ export class TreeNode {
     )
 
     return `${this.name}${childrenStates}`
+  }
+
+  private spendResources(cost: ResourceCost): boolean {
+    if (this.water < cost.water || this.energy < cost.energy) {
+      return false
+    }
+    this.water -= cost.water
+    this.energy -= cost.energy
+
+    return true
   }
 }
 

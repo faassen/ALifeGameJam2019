@@ -23,17 +23,17 @@ test("LSystem layer works properly", () => {
 
   const transportRuleMap = new Map<RuleName, TransportRule>()
 
-  const tree = new Tree(lSystemRuleMap, transportRuleMap, environment)
   const rootNode = new TreeNode("A", undefined)
+  const tree = new Tree(rootNode, lSystemRuleMap, transportRuleMap, environment)
 
-  rootNode.update(tree)
+  tree.update()
 
   expect(rootNode.children.length)
     .toBe(2)
   expect(String(rootNode))
     .toBe("AAB")
 
-  rootNode.update(tree)
+  tree.update()
   expect(rootNode.children[0].children.length)
     .toBe(2)
   expect(String(rootNode))
