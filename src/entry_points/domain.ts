@@ -113,6 +113,7 @@ class TreeNode {
     if (!canSpend) {
       return;
     }
+    this.children = childNames.map((name) => new TreeNode(name, this));
   }
 
   spendResources(cost: ResourceCost): boolean {
