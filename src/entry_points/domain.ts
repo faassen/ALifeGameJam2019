@@ -64,22 +64,36 @@ A -> BC
 export type RuleName = string
 
 export enum Resource {
-  water,
-  energy,
+  water = "water",
+  energy = "energy",
 }
 
-export type ResourceCost = Map<Resource, number>
+export type ResourceMap = Map<Resource, number>
+export type ResourceCost = ResourceMap
+
+function multiplyResourceMaps(resourceMap: ResourceMap, i: number): ResourceMap {
+  const result = new Map<Resource, number>()
+  resourceMap.forEach((value, key) => result.set(key, value * i))
+
+  return result
+}
+
+function mergeResourceMaps(resourceMaps: ResourceMap[]): ResourceMap {
+  const result = new Map<Resource, number>()
+  resourceMaps.forEach((map, i) => {
+    map.forEach((value, key) => {
+      // tslint:disable-next-line: strict-boolean-expressions
+      const currentValue = result.get(key) || 0
+      result.set(key, currentValue + value)
+    })
+  })
+
+  return result
+}
 
 export class Environment {
   public costs(ruleNames: RuleName[]): ResourceCost {
-    const waterCost = ruleNames.length * 10
-    const energyCost = ruleNames.length * 10
-
-    const cost = new Map<Resource, number>()
-    cost.set(Resource.water, waterCost)
-    cost.set(Resource.energy, energyCost)
-
-    return cost
+    return new Map<Resource, number>()
   }
 }
 
@@ -92,42 +106,75 @@ export class Tree {
   ) { }
 
   public update(): void {
-    this.rootNode.update(this)
+    this.rootNode.updateTree(this)
+    this.rootNode.updateResourceState()
   }
 }
 
 export class TreeNode {
+  public get depth(): number {
+    if (this.parent == undefined) {
+      return 0
+    }
+
+    return this.parent.depth + 1
+  }
+  public get nodeIndex(): string {
+    if (this.parent == undefined) {
+      return this.name
+    }
+
+    return `${this.parent.nodeIndex}${this.name}`
+  }
   public children: TreeNode[] = []
-  public resources = new Map<Resource, number>()
+  public resources = new Map<Resource, number>()  // should only be read once per each timestep
+  public nextResources = new Map<Resource, number>()  // temporary save resource amount for the next timestep to not mix it to current one
 
   public constructor(public name: RuleName, public parent: TreeNode | undefined) { }
 
-  public update(tree: Tree) {
+  public updateTree(tree: Tree) {
     // if we already have children, we update them recursively
     if (this.children.length !== 0) {
-      this.updateResources()
       this.children.forEach(child => {
-        child.update(tree)
+        child.updateTree(tree)
       })
+      this.updateResource(tree)
 
       return
     }
     // without children, try to grow new ones
     const lSystemRule = tree.lSystemRuleMap.get(this.name)
     if (lSystemRule == undefined) {
-      this.updateResources()
+      this.updateResource(tree)
 
       return
     }
     const childNames = lSystemRule.product
     const cost = tree.environment.costs(childNames)
-    const canSpend = this.spendResources(cost)
+    const canSpend = this.canSpendResources(cost)
     if (!canSpend) {
-      this.updateResources()
+      this.updateResource(tree)
 
       return
     }
     this.children = childNames.map(name => new TreeNode(name, this))
+    this.spendResource(cost)
+  }
+
+  public updateResource(tree: Tree): void {
+    const transportRule = tree.transportRuleMap.get(this.name)
+    if (transportRule != undefined) {
+      this.transportResources(transportRule)
+    }
+  }
+
+  public updateResourceState(): void {
+    this.resources = new Map<Resource, number>()
+    this.nextResources.forEach((value, key) => this.resources.set(key, value))
+
+    this.children.forEach(child => {
+      child.updateResourceState()
+    })
   }
 
   public toString(): string {
@@ -141,46 +188,80 @@ export class TreeNode {
     return `${this.name}${childrenStates}`
   }
 
-  private updateResources(): void {
-
-  }
-
-  private spendResources(cost: ResourceCost): boolean {
+  private canSpendResources(cost: ResourceCost): boolean {
     for (const value of cost) {
       const resourceType = value[0]
       const resourceCost = value[1]
-      const currentAmount = this.resources.get(resourceType)
-      if (currentAmount == undefined) {
-        if (resourceCost <= 0) {
-          continue
-        } else {
-          return false
-        }
+      if (resourceCost <= 0) {
+        continue
       }
-      if (resourceCost > currentAmount) {
+      const currentAmount = this.resources.get(resourceType)
+      if (currentAmount == undefined || resourceCost > currentAmount) {
         return false
       }
     }
 
-    cost.forEach((resourceCost, resourceType) => {
-      const currentAmount = this.resources.get(resourceType)
-      if (currentAmount == undefined) {
-        return
-      }
-      this.resources.set(resourceType, currentAmount - resourceCost)
-    })
-
     return true
   }
+
+  private spendResource(resourceMap: ResourceMap): void {
+    resourceMap.forEach((resourceCost, resourceType) => {
+      const currentAmount = this.nextResources.get(resourceType)
+      if (currentAmount == undefined) {
+        throw new Error(`[${this.nodeIndex}] Should not come here: fix the code. resource: ${resourceType}`)
+      }
+      const updatedAmount = currentAmount - resourceCost
+      if (updatedAmount < 0) {
+        throw new Error(`[${this.nodeIndex}] Should not come here: fix the code. resource: ${resourceType} updatedAmount: ${updatedAmount}`)
+      }
+      this.nextResources.set(resourceType, updatedAmount)
+    })
+  }
+
+  private transportResources(rule: TransportRule): void {
+    const resourceMap = mergeResourceMaps([
+      rule.parentResourceMap,
+      multiplyResourceMaps(rule.childResourceMap, this.children.length),
+    ])
+    if (this.canSpendResources(resourceMap) === false) {
+      return
+    }
+
+    if (this.parent) {
+      this.transportResourcesTo(this.parent, rule.parentResourceMap)
+    }
+
+    this.children.forEach(child => {
+      this.transportResourcesTo(child, rule.childResourceMap)
+    })
+  }
+
+  private transportResourcesTo(node: TreeNode, resourceMap: ResourceMap): void {
+    resourceMap.forEach((value, resource) => {
+      if (value <= 0) {
+        return
+      }
+      const currentAmount = this.nextResources.get(resource)
+      if (currentAmount == undefined || currentAmount - value < 0) {
+        throw new Error(`[${this.nodeIndex}] Should not come here: fix the code. resource: ${resource} currentAmount: ${currentAmount}, value: ${value}, toNode: ${node.nodeIndex}`)
+      }
+
+      this.nextResources.set(resource, currentAmount - value)
+
+      // tslint:disable-next-line: strict-boolean-expressions
+      const parentAmount = node.nextResources.get(resource) || 0
+      node.nextResources.set(resource, parentAmount + value)
+    })
+  }
+}
+
+export class TerrainNode extends TreeNode {
+  // TODO: terrain node supplies water resource and parent of the root node
 }
 
 export class LSystemRule {
   public constructor(public name: RuleName, public product: RuleName[]) { }
 }
-
-export type ResourceType = "Water" | "Energy"
-
-export type ResourceMap = Map<ResourceType, number>
 
 export class TransportRule {
   public constructor(
